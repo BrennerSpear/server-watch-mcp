@@ -4,11 +4,15 @@
 	"description": "",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
+	"bin": {
+		"server-watch-mcp": "dist/index.js"
+	},
 	"scripts": {
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"clean": "rm -rf dist",
 		"prepare": "pnpm run build",
+		"start": "node dist/index.js",
 		"lint": "biome check --fix --unsafe",
 		"typecheck": "tsc --noEmit",
 		"precommit": "pnpm run lint && pnpm run typecheck"
@@ -16,6 +20,10 @@
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.0.0",
+		"zod": "^3.23.0"
+	},
 	"devDependencies": {
 		"typescript": "^5.0.0",
 		"@types/node": "^20.0.0"
