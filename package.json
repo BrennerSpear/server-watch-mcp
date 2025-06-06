@@ -19,7 +19,8 @@
 		"preversion": "pnpm run lint",
 		"version": "pnpm run lint && git add -A src",
 		"postversion": "git push && git push --tags",
-		"prepublishOnly": "pnpm run typecheck && pnpm run lint"
+		"prepublishOnly": "pnpm run typecheck && pnpm run lint",
+		"test-myself": "server-watch-mcp"
 	},
 	"repository": {
 		"type": "git",
@@ -48,6 +49,7 @@
 	"devDependencies": {
 		"@types/node": "^20.0.0",
 		"concurrently": "^9.1.2",
+		"server-watch-mcp": "^0.1.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.0.0"
 	},
