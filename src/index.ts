@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
@@ -49,7 +49,7 @@ async function main() {
 
 	// Spawn the child process with piped stdio so we can control where output goes
 	const child = spawn(command, commandArgs, {
-		stdio: ["inherit", "pipe", "pipe"],  // stdin inherited, stdout/stderr piped
+		stdio: ["inherit", "pipe", "pipe"], // stdin inherited, stdout/stderr piped
 		shell: true,
 		cwd: process.cwd(),
 		env: process.env,
