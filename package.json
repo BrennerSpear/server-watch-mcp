@@ -1,6 +1,6 @@
 {
 	"name": "server-watch-mcp",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "A Model Context Protocol (MCP) server for watching and monitoring server resources",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -15,12 +15,11 @@
 		"start": "node dist/index.js",
 		"lint": "biome check --fix --unsafe",
 		"typecheck": "tsc --noEmit",
-		"check": "pnpm run lint && pnpm run typecheck",
+		"precommit": "pnpm run lint && pnpm run typecheck",
 		"preversion": "pnpm run lint",
 		"version": "pnpm run lint && git add -A src",
 		"postversion": "git push && git push --tags",
-		"prepublishOnly": "pnpm run typecheck && pnpm run lint",
-		"test-myself": "server-watch-mcp"
+		"prepublishOnly": "pnpm run typecheck && pnpm run lint"
 	},
 	"repository": {
 		"type": "git",
