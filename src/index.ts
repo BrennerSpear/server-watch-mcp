@@ -4,8 +4,17 @@ import { spawn } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 
+// Phase 2: Log storage types
+interface LogEntry {
+	timestamp: number;
+	stream: "stdout" | "stderr";
+	content: string;
+}
+
+// In-memory log storage
+const logs: LogEntry[] = [];
+
 async function main() {
-	// Phase 1: Basic command wrapping
 	// Extract command and arguments from command line
 	const args = process.argv.slice(2);
 	if (args.length === 0) {
@@ -17,10 +26,10 @@ async function main() {
 	const command = args[0];
 	const commandArgs = args.slice(1);
 
-	// Initialize MCP server (keeping it minimal for now)
+	// Initialize MCP server
 	const server = new McpServer({
 		name: "server-watch-mcp",
-		version: "0.1.0",
+		version: "0.1.1",
 	});
 
 	// Keep a simple tool temporarily for testing MCP connection
@@ -37,7 +46,7 @@ async function main() {
 			content: [
 				{
 					type: "text",
-					text: `MCP server is running! Monitoring command: ${command} ${commandArgs.join(" ")}`,
+					text: `MCP server is running! Monitoring command: ${command} ${commandArgs.join(" ")}\nLogs captured: ${logs.length}`,
 				},
 			],
 		}),
@@ -55,18 +64,37 @@ async function main() {
 		env: process.env,
 	});
 
-	// Forward child stdout to stderr to avoid mixing with MCP protocol
-	// This is a temporary solution for Phase 1 - we'll capture logs properly in Phase 2
+	// Helper function to process and store log lines
+	const processOutput = (data: Buffer, stream: "stdout" | "stderr") => {
+		const text = data.toString();
+		const lines = text.split("\n");
+
+		for (const line of lines) {
+			if (line.trim()) {
+				// Store log entry
+				logs.push({
+					timestamp: Date.now(),
+					stream,
+					content: line,
+				});
+			}
+		}
+
+		// Still forward to stderr for visibility (temporary for Phase 2)
+		process.stderr.write(data);
+	};
+
+	// Capture and forward child stdout
 	if (child.stdout) {
 		child.stdout.on("data", (data) => {
-			process.stderr.write(data);
+			processOutput(data, "stdout");
 		});
 	}
 
-	// Forward child stderr to process stderr
+	// Capture and forward child stderr
 	if (child.stderr) {
 		child.stderr.on("data", (data) => {
-			process.stderr.write(data);
+			processOutput(data, "stderr");
 		});
 	}
 
