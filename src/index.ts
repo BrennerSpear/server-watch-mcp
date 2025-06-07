@@ -12,7 +12,8 @@ interface LogEntry {
 	content: string;
 }
 
-// In-memory log storage
+// Phase 5a: In-memory log storage with circular buffer
+const MAX_LOG_ENTRIES = 5000;
 const logs: LogEntry[] = [];
 
 async function main() {
@@ -110,6 +111,11 @@ async function main() {
 					stream,
 					content: line,
 				});
+
+				// Phase 5a: Implement circular buffer - remove oldest entries if we exceed the limit
+				if (logs.length > MAX_LOG_ENTRIES) {
+					logs.shift(); // Remove the oldest entry
+				}
 			}
 		}
 
