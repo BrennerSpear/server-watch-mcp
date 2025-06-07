@@ -3,6 +3,7 @@
 import { spawn } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { z } from "zod";
 
 // Phase 2: Log storage types
 interface LogEntry {
@@ -32,24 +33,56 @@ async function main() {
 		version: "0.1.1",
 	});
 
-	// Keep a simple tool temporarily for testing MCP connection
+	// Phase 3: Add get_logs tool using the simpler Zod schema syntax
 	server.tool(
-		"status",
+		"get_logs",
 		{
-			description: "Check MCP server status",
-			inputSchema: {
-				type: "object",
-				properties: {},
-			},
+			limit: z.number().optional().default(100),
+			stream: z.enum(["stdout", "stderr"]).optional(),
 		},
-		async () => ({
-			content: [
-				{
-					type: "text",
-					text: `MCP server is running! Monitoring command: ${command} ${commandArgs.join(" ")}\nLogs captured: ${logs.length}`,
-				},
-			],
-		}),
+		async ({ limit, stream }) => {
+			// Filter logs by stream if specified
+			const filteredLogs = stream
+				? logs.filter((log) => log.stream === stream)
+				: logs;
+
+			// Get the most recent logs up to the limit
+			const recentLogs = filteredLogs.slice(-limit);
+
+			return {
+				content: [
+					{
+						type: "text",
+						text: JSON.stringify(recentLogs, null, 2),
+					},
+				],
+			};
+		},
+	);
+
+	// Phase 3: Add search_logs tool using the simpler Zod schema syntax
+	server.tool(
+		"search_logs",
+		{
+			query: z.string(),
+		},
+		async ({ query }) => {
+			const lowerQuery = query.toLowerCase();
+
+			// Case-insensitive substring search
+			const matchingLogs = logs.filter((log) =>
+				log.content.toLowerCase().includes(lowerQuery),
+			);
+
+			return {
+				content: [
+					{
+						type: "text",
+						text: JSON.stringify(matchingLogs, null, 2),
+					},
+				],
+			};
+		},
 	);
 
 	// Start MCP server - it will use process.stdout for communication
