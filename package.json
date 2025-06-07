@@ -15,6 +15,9 @@
 		"start": "node dist/index.js",
 		"lint": "biome check --fix --unsafe",
 		"typecheck": "tsc --noEmit",
+		"test": "jest",
+		"test:watch": "jest --watch",
+		"test:integration": "jest --testPathPattern=integration",
 		"precommit": "pnpm run lint && pnpm run typecheck",
 		"preversion": "pnpm run lint",
 		"version": "pnpm run lint && git add -A src",
@@ -46,9 +49,12 @@
 		"zod": "^3.23.0"
 	},
 	"devDependencies": {
+		"@types/jest": "^29.0.0",
 		"@types/node": "^20.0.0",
 		"concurrently": "^9.1.2",
+		"jest": "^29.0.0",
 		"server-watch-mcp": "^0.1.0",
+		"ts-jest": "^29.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.0.0"
 	},
