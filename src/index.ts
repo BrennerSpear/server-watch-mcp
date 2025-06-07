@@ -140,16 +140,34 @@ async function main() {
 	// Handle child process exit
 	child.on("exit", (code, signal) => {
 		if (signal) {
+			console.error(`Process terminated by signal: ${signal}`);
 			process.exit(1);
 		} else {
+			if (code !== 0) {
+				console.error(`Process exited with code: ${code}`);
+			}
 			process.exit(code ?? 0);
 		}
 	});
 
-	// Handle child process errors
+	// Phase 5b: Better command error handling
 	child.on("error", (error) => {
-		console.error(`Failed to start command: ${error.message}`);
-		process.exit(127);
+		const nodeError = error as NodeJS.ErrnoException;
+
+		if (nodeError.code === "ENOENT") {
+			console.error(`Command not found: ${command}`);
+			console.error(
+				"Make sure the command is installed and available in your PATH",
+			);
+			process.exit(127);
+		} else if (nodeError.code === "EACCES") {
+			console.error(`Permission denied: ${command}`);
+			console.error("Check that you have permission to execute this command");
+			process.exit(126);
+		} else {
+			console.error(`Failed to start command '${command}': ${error.message}`);
+			process.exit(127);
+		}
 	});
 }
 
