@@ -1,6 +1,6 @@
 {
 	"name": "server-watch-mcp",
-	"version": "0.1.1",
+	"version": "0.1.2",
 	"description": "A Model Context Protocol (MCP) server for watching and monitoring server resources",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -53,7 +53,6 @@
 		"@types/node": "^20.0.0",
 		"concurrently": "^9.1.2",
 		"jest": "^29.0.0",
-		"server-watch-mcp": "^0.1.0",
 		"ts-jest": "^29.0.0",
 		"tsc-alias": "^1.8.16",
 		"typescript": "^5.0.0"
