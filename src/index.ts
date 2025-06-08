@@ -160,7 +160,7 @@ async function main() {
 		stdio: ["inherit", "pipe", "pipe"], // stdin inherited, stdout/stderr piped
 		shell: true,
 		cwd: process.cwd(),
-		env: process.env,
+		env: { ...process.env, FORCE_COLOR: "1" }, // Force color output
 	});
 
 	// Helper function to process and store log lines
@@ -183,7 +183,12 @@ async function main() {
 			}
 		}
 
-		process.stderr.write(data);
+		// Write to the appropriate stream to preserve colors
+		if (stream === "stdout") {
+			process.stdout.write(data);
+		} else {
+			process.stderr.write(data);
+		}
 	};
 
 	// Capture and forward child stdout
