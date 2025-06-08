@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import { spawn } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
@@ -7,27 +5,22 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import express from "express";
 import { z } from "zod";
 
-// Phase 2: Log storage types
 interface LogEntry {
 	timestamp: number;
 	stream: "stdout" | "stderr";
 	content: string;
 }
 
-// Phase 5a: In-memory log storage with circular buffer
 const MAX_LOG_ENTRIES = 5000;
 const logs: LogEntry[] = [];
 
-// Port configuration
-const PORT = process.env.MCP_PORT
-	? Number.parseInt(process.env.MCP_PORT, 10)
-	: 3001;
+const PORT = process.env.SERVER_WATCH_MCP_PORT
+	? Number.parseInt(process.env.SERVER_WATCH_MCP_PORT)
+	: 6280;
 
-// Store SSE transports for session management
 const sseTransports: Record<string, SSEServerTransport> = {};
 
 async function main() {
-	// Extract command and arguments from command line
 	const args = process.argv.slice(2);
 	if (args.length === 0) {
 		console.error("Usage: server-watch-mcp <command> [args...]");
@@ -38,13 +31,11 @@ async function main() {
 	const command = args[0];
 	const commandArgs = args.slice(1);
 
-	// Initialize MCP server
 	const server = new McpServer({
 		name: "server-watch-mcp",
-		version: "0.1.1",
+		version: "0.1.3",
 	});
 
-	// Phase 3: Add get_logs tool using the simpler Zod schema syntax
 	server.tool(
 		"get_logs",
 		{
@@ -71,7 +62,6 @@ async function main() {
 		},
 	);
 
-	// Phase 3: Add search_logs tool using the simpler Zod schema syntax
 	server.tool(
 		"search_logs",
 		{
@@ -96,7 +86,6 @@ async function main() {
 		},
 	);
 
-	// Set up Express app and Streamable HTTP transport
 	const app = express();
 	app.use(express.json());
 
@@ -188,14 +177,12 @@ async function main() {
 					content: line,
 				});
 
-				// Phase 5a: Implement circular buffer - remove oldest entries if we exceed the limit
 				if (logs.length > MAX_LOG_ENTRIES) {
 					logs.shift(); // Remove the oldest entry
 				}
 			}
 		}
 
-		// Still forward to stderr for visibility (temporary for Phase 2)
 		process.stderr.write(data);
 	};
 
@@ -228,7 +215,6 @@ async function main() {
 		}
 	});
 
-	// Phase 5b: Better command error handling
 	child.on("error", (error) => {
 		const nodeError = error as NodeJS.ErrnoException;
 
