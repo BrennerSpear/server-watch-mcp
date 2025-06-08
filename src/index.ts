@@ -41,8 +41,9 @@ async function main() {
 		{
 			limit: z.number().optional().default(100),
 			stream: z.enum(["stdout", "stderr"]).optional(),
+			include_timestamps: z.boolean().optional().default(false),
 		},
-		async ({ limit, stream }) => {
+		async ({ limit, stream, include_timestamps }) => {
 			// Filter logs by stream if specified
 			const filteredLogs = stream
 				? logs.filter((log) => log.stream === stream)
@@ -51,11 +52,26 @@ async function main() {
 			// Get the most recent logs up to the limit
 			const recentLogs = filteredLogs.slice(-limit);
 
+			// Format logs as simple text lines
+			const formattedLogs = recentLogs
+				.map((log) => {
+					let line = "";
+					if (include_timestamps) {
+						line += `[${new Date(log.timestamp).toISOString()}] `;
+					}
+					if (log.stream === "stderr") {
+						line += "ERR: ";
+					}
+					line += log.content;
+					return line;
+				})
+				.join("\n");
+
 			return {
 				content: [
 					{
 						type: "text",
-						text: JSON.stringify(recentLogs, null, 2),
+						text: formattedLogs,
 					},
 				],
 			};
@@ -66,8 +82,9 @@ async function main() {
 		"search_logs",
 		{
 			query: z.string(),
+			include_timestamps: z.boolean().optional().default(false),
 		},
-		async ({ query }) => {
+		async ({ query, include_timestamps }) => {
 			const lowerQuery = query.toLowerCase();
 
 			// Case-insensitive substring search
@@ -75,11 +92,26 @@ async function main() {
 				log.content.toLowerCase().includes(lowerQuery),
 			);
 
+			// Format logs as simple text lines
+			const formattedLogs = matchingLogs
+				.map((log) => {
+					let line = "";
+					if (include_timestamps) {
+						line += `[${new Date(log.timestamp).toISOString()}] `;
+					}
+					if (log.stream === "stderr") {
+						line += "ERR: ";
+					}
+					line += log.content;
+					return line;
+				})
+				.join("\n");
+
 			return {
 				content: [
 					{
 						type: "text",
-						text: JSON.stringify(matchingLogs, null, 2),
+						text: formattedLogs,
 					},
 				],
 			};
