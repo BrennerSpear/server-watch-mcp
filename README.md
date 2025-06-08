@@ -1,6 +1,6 @@
 # server-watch-mcp
 
-An MCP (Model Context Protocol) server that monitors and captures output from any running command. Perfect for development workflows where you need to access server logs, build output, or any process output through Claude.
+An MCP (Model Context Protocol) server that monitors and captures output from any running command. Perfect for development workflows where you need to access server logs, build output, or any process output.
 
 ## Features
 
@@ -17,6 +17,8 @@ An MCP (Model Context Protocol) server that monitors and captures output from an
 npm install -g server-watch-mcp
 # or
 pnpm add -g server-watch-mcp
+# or in your project
+pnpm add -D server-watch-mcp
 ```
 
 ## Usage
@@ -33,24 +35,33 @@ server-watch-mcp npm run build:watch
 # Monitor any command
 server-watch-mcp python app.py
 ```
+```jsonc
+// In your package.json
+{
+    "scripts": {
+      "dev": "server-watch-mcp next dev --turbo",
+    }
+}
+```
 
 The server will:
-- Start an HTTP server on port 3001 (or `MCP_PORT` environment variable)
+- Start an HTTP server on port 6280 (or `MCP_PORT` environment variable)
 - Execute your command as a child process
 - Capture all output from the command
 - Continue running even if the child process exits
 
 ### 2. Configure Claude Code
 
-Create or update your `mcp.json` file in your Claude Code project:
+In the project you're using Claude Code with, create or update your `.mcp.json` file:
 
-```json
+```jsonc
 {
-  "mcpServers": {
-    "server-watch-mcp": {
-      "url": "http://localhost:3001/mcp"
-    }
-  }
+	"mcpServers": {
+		"server-watch-mcp": {
+			"type": "sse", // Even though SSE is deprecated, Claude Code only supports SSE 
+			"url": "http://localhost:6280/sse"
+		}
+	}
 }
 ```
 
@@ -64,9 +75,9 @@ Once connected, you can use these tools:
 
 ## Environment Variables
 
-- `MCP_PORT` - Override the default port (3001)
+- `MCP_PORT` - Override the default port (6280)
   ```bash
-  MCP_PORT=8080 server-watch-mcp npm run dev
+  MCP_PORT=6281 server-watch-mcp npm run dev
   ```
 
 ## How it works
@@ -76,13 +87,14 @@ Once connected, you can use these tools:
 3. All output is stored in a circular buffer (max 5000 entries)
 4. The HTTP server persists even if your command exits, maintaining access to logs
 
+
+![Run server](./assets/run_server.png)
+
+![Claude Code](./assets/ask_claude.png)
+
 ## Development
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/server-watch-mcp.git
-cd server-watch-mcp
-
 # Install dependencies
 pnpm install
 
