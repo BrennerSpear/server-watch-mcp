@@ -2,7 +2,9 @@
 
 import { spawn } from "node:child_process";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import express from "express";
 import { z } from "zod";
 
 // Phase 2: Log storage types
@@ -15,6 +17,14 @@ interface LogEntry {
 // Phase 5a: In-memory log storage with circular buffer
 const MAX_LOG_ENTRIES = 5000;
 const logs: LogEntry[] = [];
+
+// Port configuration
+const PORT = process.env.MCP_PORT
+	? Number.parseInt(process.env.MCP_PORT, 10)
+	: 3001;
+
+// Store SSE transports for session management
+const sseTransports: Record<string, SSEServerTransport> = {};
 
 async function main() {
 	// Extract command and arguments from command line
@@ -86,9 +96,75 @@ async function main() {
 		},
 	);
 
-	// Start MCP server - it will use process.stdout for communication
-	const transport = new StdioServerTransport();
+	// Set up Express app and Streamable HTTP transport
+	const app = express();
+	app.use(express.json());
+
+	const transport = new StreamableHTTPServerTransport({
+		sessionIdGenerator: undefined, // stateless for simplicity
+	});
+
+	// Modern Streamable HTTP endpoint
+	app.post("/mcp", async (req, res) => {
+		try {
+			await transport.handleRequest(req, res, req.body);
+		} catch (error) {
+			console.error("Error handling MCP request:", error);
+			if (!res.headersSent) {
+				res.status(500).json({
+					jsonrpc: "2.0",
+					error: { code: -32603, message: "Internal server error" },
+					id: null,
+				});
+			}
+		}
+	});
+
+	// Legacy SSE endpoint for older clients
+	app.get("/sse", async (req, res) => {
+		try {
+			const transport = new SSEServerTransport("/messages", res);
+			sseTransports[transport.sessionId] = transport;
+
+			res.on("close", () => {
+				delete sseTransports[transport.sessionId];
+			});
+
+			await server.connect(transport);
+		} catch (error) {
+			console.error("Error setting up SSE transport:", error);
+			if (!res.headersSent) {
+				res.status(500).send("Failed to establish SSE connection");
+			}
+		}
+	});
+
+	// Legacy message endpoint for older clients
+	app.post("/messages", async (req, res) => {
+		try {
+			const sessionId = req.query.sessionId as string;
+			const transport = sseTransports[sessionId];
+			if (transport) {
+				await transport.handlePostMessage(req, res, req.body);
+			} else {
+				res.status(400).send("No transport found for sessionId");
+			}
+		} catch (error) {
+			console.error("Error handling SSE message:", error);
+			if (!res.headersSent) {
+				res.status(500).send("Failed to handle message");
+			}
+		}
+	});
+
+	// Connect MCP server to transport
 	await server.connect(transport);
+
+	// Start HTTP server
+	app.listen(PORT, () => {
+		console.log(`MCP server running on http://localhost:${PORT}`);
+		console.log(`Monitoring command: ${command} ${commandArgs.join(" ")}`);
+	});
 
 	// Spawn the child process with piped stdio so we can control where output goes
 	const child = spawn(command, commandArgs, {
@@ -140,13 +216,15 @@ async function main() {
 	// Handle child process exit
 	child.on("exit", (code, signal) => {
 		if (signal) {
-			console.error(`Process terminated by signal: ${signal}`);
-			process.exit(1);
+			console.error(`\nChild process terminated by signal: ${signal}`);
+			console.log(`MCP server continues running on http://localhost:${PORT}`);
 		} else {
 			if (code !== 0) {
-				console.error(`Process exited with code: ${code}`);
+				console.error(`\nChild process exited with code: ${code}`);
+			} else {
+				console.log("\nChild process exited successfully");
 			}
-			process.exit(code ?? 0);
+			console.log(`MCP server continues running on http://localhost:${PORT}`);
 		}
 	});
 
@@ -155,19 +233,17 @@ async function main() {
 		const nodeError = error as NodeJS.ErrnoException;
 
 		if (nodeError.code === "ENOENT") {
-			console.error(`Command not found: ${command}`);
+			console.error(`\nCommand not found: ${command}`);
 			console.error(
 				"Make sure the command is installed and available in your PATH",
 			);
-			process.exit(127);
 		} else if (nodeError.code === "EACCES") {
-			console.error(`Permission denied: ${command}`);
+			console.error(`\nPermission denied: ${command}`);
 			console.error("Check that you have permission to execute this command");
-			process.exit(126);
 		} else {
-			console.error(`Failed to start command '${command}': ${error.message}`);
-			process.exit(127);
+			console.error(`\nFailed to start command '${command}': ${error.message}`);
 		}
+		console.log(`\nMCP server continues running on http://localhost:${PORT}`);
 	});
 }
 

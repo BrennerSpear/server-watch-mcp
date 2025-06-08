@@ -46,9 +46,11 @@
 	"homepage": "https://github.com/brenner/server-watch-mcp#readme",
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.0.0",
+		"express": "^5.1.0",
 		"zod": "^3.23.0"
 	},
 	"devDependencies": {
+		"@types/express": "^5.0.3",
 		"@types/jest": "^29.0.0",
 		"@types/node": "^20.0.0",
 		"concurrently": "^9.1.2",
