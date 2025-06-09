@@ -1,6 +1,6 @@
 {
 	"name": "server-watch-mcp",
-	"version": "0.1.4",
+	"version": "0.1.5",
 	"description": "A Model Context Protocol (MCP) server for watching and monitoring server resources",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -26,7 +26,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/brenner/server-watch-mcp.git"
+		"url": "git+https://github.com/BrennerSpear/server-watch-mcp.git"
 	},
 	"files": ["dist/**/*"],
 	"keywords": [
