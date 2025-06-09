@@ -91,13 +91,6 @@ Once connected, you can use these tools:
 SERVER_WATCH_MCP_PORT=6281 server-watch-mcp npm run dev
 ```
 
-## How it works
-
-1. The server uses the MCP Streamable HTTP transport (or SSE transport if you're using Claude Code), allowing multiple clients to connect
-2. Your command runs as a child process with its output piped to the MCP server
-3. All output is stored in a circular buffer (max 5000 entries)
-4. The HTTP server persists even if your command exits, maintaining access to logs
-
 ## Development
 
 ```bash
