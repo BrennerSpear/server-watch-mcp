@@ -41,9 +41,9 @@
 	"author": "Brenner Spear",
 	"license": "ISC",
 	"bugs": {
-		"url": "https://github.com/brenner/server-watch-mcp/issues"
+		"url": "https://github.com/BrennerSpear/server-watch-mcp/issues"
 	},
-	"homepage": "https://github.com/brenner/server-watch-mcp#readme",
+	"homepage": "https://github.com/BrennerSpear/server-watch-mcp#readme",
 	"dependencies": {
 		"@modelcontextprotocol/sdk": "^1.0.0",
 		"express": "^5.1.0",
