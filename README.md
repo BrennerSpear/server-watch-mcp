@@ -2,6 +2,10 @@
 
 A straight-forward CLI wrapper that monitors and captures output from any running command and exposes it as an MCP server. Perfect for development workflows where you need to access server logs, build output, or any process output.
 
+![Run server](./assets/run_server.png)
+
+![Claude Code](./assets/ask_claude.png)
+
 ## Features
 
 - **HTTP-based MCP server** - Run as a standalone service that clients can connect to
@@ -33,12 +37,12 @@ Which should configure it like this:
 
 ```jsonc
 {
-	"mcpServers": {
-		"server-watch-mcp": {
-			"type": "sse", // Even though SSE is deprecated, Claude Code only supports SSE 
-			"url": "http://localhost:6280/sse"
-		}
-	}
+  "mcpServers": {
+    "server-watch-mcp": {
+      "type": "sse", // Even though SSE is deprecated, Claude Code only supports SSE 
+      "url": "http://localhost:6280/sse"
+    }
+  }
 }
 ```
 
@@ -60,9 +64,9 @@ server-watch-mcp python app.py
 ```jsonc
 // In your package.json
 {
-    "scripts": {
-      "dev": "server-watch-mcp next dev --turbo",
-    }
+  "scripts": {
+    "dev": "server-watch-mcp next dev --turbo",
+  }
 }
 ```
 
@@ -93,11 +97,6 @@ SERVER_WATCH_MCP_PORT=6281 server-watch-mcp npm run dev
 2. Your command runs as a child process with its output piped to the MCP server
 3. All output is stored in a circular buffer (max 5000 entries)
 4. The HTTP server persists even if your command exits, maintaining access to logs
-
-
-![Run server](./assets/run_server.png)
-
-![Claude Code](./assets/ask_claude.png)
 
 ## Development
 
