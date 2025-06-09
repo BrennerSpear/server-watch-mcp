@@ -40,14 +40,13 @@ async function main() {
 		"get_logs",
 		{
 			limit: z.number().optional().default(100),
-			stream: z.enum(["stdout", "stderr"]).optional(),
+			stream: z.enum(["stdout", "stderr", "both"]).optional().default("both"),
 			include_timestamps: z.boolean().optional().default(false),
 		},
 		async ({ limit, stream, include_timestamps }) => {
 			// Filter logs by stream if specified
-			const filteredLogs = stream
-				? logs.filter((log) => log.stream === stream)
-				: logs;
+			const filteredLogs =
+				stream === "both" ? logs : logs.filter((log) => log.stream === stream);
 
 			// Get the most recent logs up to the limit
 			const recentLogs = filteredLogs.slice(-limit);
